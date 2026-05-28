@@ -1,42 +1,31 @@
 name: Build APK
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      # 1. Сборка версии Free
-      # Используем команду, которая не требует Google Play Services
+      - run: chmod +x gradlew
+      
+      # Собираем версию Free
       - name: Build Free APK
         run: ./gradlew assembleConversationsFreeDebug
 
-      # 2. Поиск файла (выведет путь в консоль GitHub Actions)
-      - name: Locate APK files
-        run: find . -name "*.apk"
+      # ВАЖНО: Выводим полный список всех файлов в папке сборки
+      - name: Debug - List all files
+        run: find . -maxdepth 5 -name "*.apk"
 
-      # 3. Загрузка всех найденных APK
-      # В версии v4 можно указать путь к папке, и он загрузит все файлы внутри
+      # Загружаем всё, что нашлось в текущей директории
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-free-debug
-          path: app/build/outputs/apk/
+          name: all-apks
+          path: .
+          # Используем include-hidden-files, чтобы точно ничего не упустить
+          include-hidden-files: true
