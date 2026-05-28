@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Загрузка исходного кода
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Настройка JDK 21 (необходимо для текущей версии проекта)
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -23,18 +21,21 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # 3. Права на выполнение Gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 4. Сборка именно Free версии (отключает зависимость от Google Services)
+      # Собираем версию Free
       - name: Build Free APK
         run: ./gradlew assembleConversationsFreeDebug
 
-      # 5. Загрузка готового APK файла
+      # Отладочный шаг: выводит список всех файлов APK, чтобы мы точно знали их путь
+      - name: Locate APK files
+        run: find . -name "*.apk"
+
+      # Загружаем всё, что нашлось в папке сборки
+      # В версии v4 мы можем указывать путь к папке, и он заберет всё содержимое
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-free-debug
-          # Путь для версии Free обычно выглядит так:
-          path: app/build/outputs/apk/conversationsFree/debug/app-conversations-free-debug.apk
+          path: app/build/outputs/apk/
